@@ -29,7 +29,7 @@
 #include "core/string/ustring.h"
 #include "core/variant/array.h"
 #include "editor/editor_interface.h"
-#include "editor/editor_scale.h"
+#include "editor/themes/editor_scale.h"
 #include "editor/filesystem_dock.h"
 #include "editor/plugins/editor_debugger_plugin.h"
 #include "scene/gui/box_container.h"

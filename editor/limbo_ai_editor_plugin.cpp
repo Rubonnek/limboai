@@ -83,7 +83,7 @@ void LimboAIEditor::_add_task(const Ref<BTTask> &p_task, bool p_as_sibling) {
 	ERR_FAIL_COND(p_task.is_null());
 
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Add BT Task"));
+	undo_redo->create_action(TTR("Add BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 
 	int insert_idx = -1;
 	Ref<BTTask> selected = task_tree->get_selected();
@@ -154,7 +154,7 @@ void LimboAIEditor::_remove_task(const Ref<BTTask> &p_task) {
 	ERR_FAIL_COND(p_task.is_null());
 	ERR_FAIL_COND(task_tree->get_bt().is_null());
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Remove BT Task"));
+	undo_redo->create_action(TTR("Remove BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 	if (p_task->get_parent() == nullptr) {
 		ERR_FAIL_COND(task_tree->get_bt()->get_root_task() != p_task);
 		undo_redo->add_do_method(task_tree->get_bt().ptr(), LW_NAME(set_root_task), Variant());
@@ -328,7 +328,7 @@ void LimboAIEditor::_extract_subtree(const String &p_path) {
 	ERR_FAIL_COND(selected.is_null());
 
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Extract Subtree"));
+	undo_redo->create_action(TTR("Extract Subtree"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 
 	Ref<BehaviorTree> bt = memnew(BehaviorTree);
 	bt->set_root_task(selected->clone());
@@ -522,7 +522,7 @@ void LimboAIEditor::_action_selected(int p_id) {
 				Ref<BTTask> parent = sel->get_parent();
 				int idx = sel->get_index();
 				if (idx > 0 && idx < parent->get_child_count()) {
-					undo_redo->create_action(TTR("Move BT Task"));
+					undo_redo->create_action(TTR("Move BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 					undo_redo->add_do_method(parent.ptr(), LW_NAME(remove_child), sel);
 					undo_redo->add_do_method(parent.ptr(), LW_NAME(add_child_at_index), sel, idx - 1);
 					undo_redo->add_undo_method(parent.ptr(), LW_NAME(remove_child), sel);
@@ -540,7 +540,7 @@ void LimboAIEditor::_action_selected(int p_id) {
 				Ref<BTTask> parent = sel->get_parent();
 				int idx = sel->get_index();
 				if (idx >= 0 && idx < (parent->get_child_count() - 1)) {
-					undo_redo->create_action(TTR("Move BT Task"));
+					undo_redo->create_action(TTR("Move BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 					undo_redo->add_do_method(parent.ptr(), LW_NAME(remove_child), sel);
 					undo_redo->add_do_method(parent.ptr(), LW_NAME(add_child_at_index), sel, idx + 1);
 					undo_redo->add_undo_method(parent.ptr(), LW_NAME(remove_child), sel);
@@ -555,7 +555,7 @@ void LimboAIEditor::_action_selected(int p_id) {
 		case ACTION_DUPLICATE: {
 			Ref<BTTask> sel = task_tree->get_selected();
 			if (sel.is_valid()) {
-				undo_redo->create_action(TTR("Duplicate BT Task"));
+				undo_redo->create_action(TTR("Duplicate BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 				Ref<BTTask> parent = sel->get_parent();
 				if (parent.is_null()) {
 					parent = sel;
@@ -574,7 +574,7 @@ void LimboAIEditor::_action_selected(int p_id) {
 			if (sel.is_valid() && task_tree->get_bt()->get_root_task() != sel) {
 				Ref<BTTask> parent = sel->get_parent();
 				ERR_FAIL_COND(parent.is_null());
-				undo_redo->create_action(TTR("Make Root"));
+				undo_redo->create_action(TTR("Make Root"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 				undo_redo->add_do_method(parent.ptr(), LW_NAME(remove_child), sel);
 				Ref<BTTask> old_root = task_tree->get_bt()->get_root_task();
 				undo_redo->add_do_method(task_tree->get_bt().ptr(), LW_NAME(set_root_task), sel);
@@ -602,7 +602,7 @@ void LimboAIEditor::_action_selected(int p_id) {
 					clipboard_task = sel->clone();
 				}
 
-				undo_redo->create_action(TTR("Remove BT Task"));
+				undo_redo->create_action(TTR("Remove BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 				if (sel->is_root()) {
 					undo_redo->add_do_method(task_tree->get_bt().ptr(), LW_NAME(set_root_task), Variant());
 					undo_redo->add_undo_method(task_tree->get_bt().ptr(), LW_NAME(set_root_task), task_tree->get_bt()->get_root_task());
@@ -809,7 +809,7 @@ void LimboAIEditor::_on_task_dragged(Ref<BTTask> p_task, Ref<BTTask> p_to_task, 
 	}
 
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Drag BT Task"));
+	undo_redo->create_action(TTR("Drag BT Task"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 	undo_redo->add_do_method(p_task->get_parent().ptr(), LW_NAME(remove_child), p_task);
 
 	if (p_type == 0) {
@@ -888,7 +888,7 @@ void LimboAIEditor::_task_type_selected(const String &p_class_or_path) {
 	ERR_FAIL_COND_MSG(new_task.is_null(), "LimboAI: Unable to construct task.");
 
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Change BT task type"));
+	undo_redo->create_action(TTR("Change BT task type"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 	undo_redo->add_do_method(this, LW_NAME(_replace_task), selected_task, new_task);
 	undo_redo->add_undo_method(this, LW_NAME(_replace_task), new_task, selected_task);
 	undo_redo->add_do_method(task_tree, LW_NAME(update_tree));
@@ -973,7 +973,7 @@ void LimboAIEditor::_rename_task_confirmed() {
 	rename_dialog->hide();
 
 	EditorUndoRedoManager *undo_redo = GET_UNDO_REDO();
-	undo_redo->create_action(TTR("Set Custom Name"));
+	undo_redo->create_action(TTR("Set Custom Name"), UndoRedo::MERGE_DISABLE, task_tree->get_bt().ptr());
 	undo_redo->add_do_method(task_tree->get_selected().ptr(), LW_NAME(set_custom_name), rename_edit->get_text());
 	undo_redo->add_undo_method(task_tree->get_selected().ptr(), LW_NAME(set_custom_name), task_tree->get_selected()->get_custom_name());
 	undo_redo->add_do_method(task_tree, LW_NAME(update_task), task_tree->get_selected());

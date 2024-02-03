@@ -9,6 +9,7 @@
  * =============================================================================
  */
 
+#include <functional>
 #ifdef TOOLS_ENABLED
 
 #include "limbo_ai_editor_plugin.h"
@@ -192,10 +193,34 @@ void LimboAIEditor::_update_history_buttons() {
 }
 
 void LimboAIEditor::_new_bt() {
+	if (task_tree->get_bt().is_valid() && dirty.has(task_tree->get_bt())) {
+		if (task_tree->get_bt()->get_path().is_empty()) {
+			save_dialog->popup_centered_ratio();
+			return;
+		} else {
+			_save_bt(task_tree->get_bt()->get_path());
+		}
+	}
+
 	Ref<BehaviorTree> bt = memnew(BehaviorTree);
 	bt->set_root_task(memnew(BTSelector));
 	bt->set_blackboard_plan(memnew(BlackboardPlan));
-	EDIT_RESOURCE(bt);
+	new_dialog->connect("file_selected", callable_mp(this, &LimboAIEditor::_save_and_edit_new_bt).bind(bt), Object::CONNECT_ONE_SHOT);
+	new_dialog->popup_centered_ratio();
+}
+
+void LimboAIEditor::_save_and_edit_new_bt(const String &p_path, const Ref<BehaviorTree> &p_bt) {
+	if (p_path.is_empty()) {
+		return;
+	}
+	RESOURCE_SAVE(p_bt, p_path, ResourceSaver::FLAG_CHANGE_PATH);
+#ifdef LIMBOAI_MODULE
+	p_bt->set_path(p_path, true);
+#elif LIMBOAI_GDEXTENSION
+	p_bt->take_over_path(p_path);
+#endif
+
+	EDIT_RESOURCE(p_bt);
 }
 
 void LimboAIEditor::_save_bt(String p_path) {
@@ -1188,6 +1213,7 @@ void LimboAIEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_remove_task", "p_task"), &LimboAIEditor::_remove_task);
 	ClassDB::bind_method(D_METHOD("_add_task_with_prototype", "p_prototype"), &LimboAIEditor::_add_task_with_prototype);
 	ClassDB::bind_method(D_METHOD("_new_bt"), &LimboAIEditor::_new_bt);
+	ClassDB::bind_method(D_METHOD("_save_and_edit_new_bt"), &LimboAIEditor::_save_and_edit_new_bt);
 	ClassDB::bind_method(D_METHOD("_save_bt", "p_path"), &LimboAIEditor::_save_bt);
 	ClassDB::bind_method(D_METHOD("_load_bt", "p_path"), &LimboAIEditor::_load_bt);
 	ClassDB::bind_method(D_METHOD("edit_bt", "p_behavior_tree", "p_force_refresh"), &LimboAIEditor::edit_bt, Variant(false));
@@ -1220,6 +1246,13 @@ LimboAIEditor::LimboAIEditor() {
 	LW_SHORTCUT("limbo_ai/open_debugger", TTR("Open Debugger"), (Key)(LW_KEY_MASK(CMD_OR_CTRL) | LW_KEY_MASK(ALT) | LW_KEY(D)));
 
 	set_process_shortcut_input(true);
+
+	new_dialog = memnew(FileDialog);
+	new_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
+	new_dialog->set_title(TTR("New Behavior Tree"));
+	new_dialog->add_filter("*.tres");
+	new_dialog->hide();
+	add_child(new_dialog);
 
 	save_dialog = memnew(FileDialog);
 	save_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
@@ -1455,6 +1488,7 @@ LimboAIEditor::LimboAIEditor() {
 	GLOBAL_DEF(PropertyInfo(Variant::STRING, "limbo_ai/behavior_tree/user_task_dir_3", PROPERTY_HINT_DIR), "");
 
 	String bt_default_dir = GLOBAL_GET("limbo_ai/behavior_tree/behavior_tree_default_dir");
+	new_dialog->set_current_dir(bt_default_dir);
 	save_dialog->set_current_dir(bt_default_dir);
 	load_dialog->set_current_dir(bt_default_dir);
 	extract_dialog->set_current_dir(bt_default_dir);

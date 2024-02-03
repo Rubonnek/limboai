@@ -142,6 +142,7 @@ private:
 	PopupPanel *change_type_popup;
 	TaskPalette *change_type_palette;
 
+	FileDialog *new_dialog;
 	FileDialog *save_dialog;
 	FileDialog *load_dialog;
 	FileDialog *extract_dialog;
@@ -174,6 +175,7 @@ private:
 	void _update_misc_menu();
 	void _update_banners();
 	void _new_bt();
+	void _save_and_edit_new_bt(const String &path, const Ref<BehaviorTree> &p_bt);
 	void _save_bt(String p_path);
 	void _load_bt(String p_path);
 	void _mark_as_dirty(bool p_dirty);

@@ -103,9 +103,11 @@ void LimboAIEditor::_add_task(const Ref<BTTask> &p_task, bool p_as_sibling) {
 			parent = selected->get_parent();
 			insert_idx = selected->get_index() + 1;
 		}
+		undo_redo->force_correct_history();
 		undo_redo->add_do_method(parent.ptr(), LW_NAME(add_child_at_index), p_task, insert_idx);
 		undo_redo->add_undo_method(parent.ptr(), LW_NAME(remove_child), p_task);
 	}
+	undo_redo->force_correct_history();
 	undo_redo->add_do_method(task_tree, LW_NAME(update_tree));
 	undo_redo->add_undo_method(task_tree, LW_NAME(update_tree));
 

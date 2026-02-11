@@ -22,7 +22,7 @@ private:
 	StringName array_var;
 	StringName save_var;
 
-	int current_idx;
+	int64_t current_idx; // Match Array::size() return type (int64_t in GDExtension)
 
 protected:
 	static void _bind_methods();

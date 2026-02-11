@@ -46,7 +46,8 @@ void BTRepeat::set_forever(bool p_forever) {
 }
 
 void BTRepeat::set_times(int p_value) {
-	times = p_value;
+	// Clamp to reasonable upper bound to prevent signed overflow in cur_iteration
+	times = CLAMP(p_value, 1, 1000000);
 	emit_changed();
 }
 

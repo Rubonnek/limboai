@@ -11,8 +11,8 @@
 
 #include "bt_run_limit.h"
 
-void BTRunLimit::set_run_limit(int p_value) {
-	run_limit = p_value;
+void BTRunLimit::set_run_limit(int64_t p_value) {
+	run_limit = MAX(1, p_value);
 	emit_changed();
 }
 

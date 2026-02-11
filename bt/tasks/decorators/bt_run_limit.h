@@ -26,9 +26,9 @@ public:
 	};
 
 private:
-	int run_limit = 1;
+	int64_t run_limit = 1;
 	CountPolicy count_policy = CountPolicy::COUNT_SUCCESSFUL;
-	int num_runs = 0;
+	int64_t num_runs = 0;
 
 protected:
 	static void _bind_methods();
@@ -37,8 +37,8 @@ protected:
 	virtual Status _tick(double p_delta) override;
 
 public:
-	void set_run_limit(int p_value);
-	int get_run_limit() const { return run_limit; }
+	void set_run_limit(int64_t p_value);
+	int64_t get_run_limit() const { return run_limit; }
 
 	void set_count_policy(CountPolicy p_policy);
 	CountPolicy get_count_policy() const { return count_policy; }

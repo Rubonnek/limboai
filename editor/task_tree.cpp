@@ -179,8 +179,10 @@ void TaskTree::_on_item_selected() {
 		}
 	}
 	last_selected = get_selected();
-	last_selected->connect(LW_NAME(changed), on_task_changed);
-	emit_signal(LW_NAME(task_selected), last_selected);
+	if (last_selected.is_valid()) {
+		last_selected->connect(LW_NAME(changed), on_task_changed);
+		emit_signal(LW_NAME(task_selected), last_selected);
+	}
 }
 
 void TaskTree::_on_item_activated() {
@@ -488,7 +490,8 @@ void TaskTree::_normalize_drop(TreeItem *item, int type, int &to_pos, Ref<BTTask
 		case 1: // Drop below target.
 			if (item->get_child_count() == 0) {
 				to_pos = to_task->get_index() + 1;
-				if (to_task == tree->get_next_selected(nullptr)->get_metadata(0)) {
+				TreeItem *next_sel = tree->get_next_selected(nullptr);
+				if (next_sel && to_task == next_sel->get_metadata(0)) {
 					to_pos -= 1;
 				}
 				to_task = to_task->get_parent();
@@ -521,7 +524,11 @@ void TaskTree::_draw_probability(Object *item_obj, Rect2 rect) {
 	if (!item) {
 		return;
 	}
-	Ref<BTProbabilitySelector> sel = item->get_parent()->get_metadata(0);
+	TreeItem *parent_item = item->get_parent();
+	if (!parent_item) {
+		return; // Root item, no parent to draw probability for
+	}
+	Ref<BTProbabilitySelector> sel = parent_item->get_metadata(0);
 	if (sel.is_null()) {
 		return;
 	}

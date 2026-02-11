@@ -76,7 +76,11 @@ namespace {
 // If built-in resource - switch to the owner scene (open it if not already).
 inline void _switch_to_owner_scene_if_builtin(const Ref<BehaviorTree> &p_behavior_tree) {
 	if (p_behavior_tree.is_valid() && p_behavior_tree->get_path().contains("::")) {
-		String current_scene = SCENE_TREE()->get_edited_scene_root()->get_scene_file_path();
+		SceneTree *scene_tree = SCENE_TREE();
+		ERR_FAIL_NULL(scene_tree);
+		Node *root = scene_tree->get_edited_scene_root();
+		ERR_FAIL_NULL(root);
+		String current_scene = root->get_scene_file_path();
 		String scene_path = p_behavior_tree->get_path().get_slice("::", 0);
 		if (current_scene != scene_path) {
 			EditorInterface::get_singleton()->open_scene_from_path(scene_path);
@@ -458,7 +462,7 @@ void LimboAIEditor::_extract_subtree(const String &p_path) {
 		undo_redo->add_undo_method(selected->get_parent().ptr(), LW_NAME(add_child_at_index), selected, idx);
 	}
 	_commit_action_with_update(undo_redo);
-	EditorInterface::get_singleton()->edit_resource(task_tree->get_selected());
+	EditorInterface::get_singleton()->edit_resource(selected);
 }
 
 void LimboAIEditor::_process_shortcut_input(const Ref<InputEvent> &p_event) {
@@ -665,8 +669,12 @@ void LimboAIEditor::_action_selected(int p_id) {
 			probability_popup->popup(rect);
 		} break;
 		case ACTION_EDIT_SCRIPT: {
-			ERR_FAIL_COND(task_tree->get_selected().is_null());
-			EditorInterface::get_singleton()->edit_resource(task_tree->get_selected()->get_script());
+			Ref<BTTask> selected = task_tree->get_selected();
+			ERR_FAIL_COND(selected.is_null());
+			Ref<Script> script = selected->get_script();
+			if (script.is_valid()) {
+				EditorInterface::get_singleton()->edit_resource(script);
+			}
 		} break;
 		case ACTION_OPEN_DOC: {
 			Ref<BTTask> task = task_tree->get_selected();
@@ -1415,14 +1423,15 @@ void LimboAIEditor::_popup_info_dialog(const String &p_text) {
 }
 
 void LimboAIEditor::_rename_task_confirmed() {
-	ERR_FAIL_COND(!task_tree->get_selected().is_valid());
+	Ref<BTTask> selected = task_tree->get_selected();
+	ERR_FAIL_COND(selected.is_null());
 	rename_dialog->hide();
 
 	EditorUndoRedoManager *undo_redo = _new_undo_redo_action(TTR("Set Custom Name"));
-	undo_redo->add_do_method(task_tree->get_selected().ptr(), LW_NAME(set_custom_name), rename_edit->get_text());
-	undo_redo->add_undo_method(task_tree->get_selected().ptr(), LW_NAME(set_custom_name), task_tree->get_selected()->get_custom_name());
-	undo_redo->add_do_method(this, LW_NAME(_update_task_tree), task_tree->get_bt(), task_tree->get_selected());
-	undo_redo->add_undo_method(this, LW_NAME(_update_task_tree), task_tree->get_bt(), task_tree->get_selected());
+	undo_redo->add_do_method(selected.ptr(), LW_NAME(set_custom_name), rename_edit->get_text());
+	undo_redo->add_undo_method(selected.ptr(), LW_NAME(set_custom_name), selected->get_custom_name());
+	undo_redo->add_do_method(this, LW_NAME(_update_task_tree), task_tree->get_bt(), selected);
+	undo_redo->add_undo_method(this, LW_NAME(_update_task_tree), task_tree->get_bt(), selected);
 	undo_redo->commit_action();
 }
 

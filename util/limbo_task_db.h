@@ -38,6 +38,13 @@ private:
 	};
 
 public:
+	/// Cleanup static storage during module deinitialization.
+	/// Should be called from uninitialize_limboai_module() before singleton destruction.
+	static void cleanup() {
+		core_tasks.clear();
+		tasks_cache.clear();
+	}
+
 	template <class T>
 	static void register_task() {
 		GDREGISTER_CLASS(T);

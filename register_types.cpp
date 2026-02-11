@@ -132,6 +132,9 @@ static LimboUtility *_limbo_utility = nullptr;
 
 void initialize_limboai_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		// CRITICAL: Create LimboStringNames FIRST - may be used by _bind_methods()
+		LimboStringNames::create();
+
 #ifdef TOOLS_ENABLED
 		GDREGISTER_CLASS(BehaviorTreeView);
 #endif // TOOLS_ENABLED
@@ -245,8 +248,6 @@ void initialize_limboai_module(ModuleInitializationLevel p_level) {
 #elif LIMBOAI_GDEXTENSION
 		Engine::get_singleton()->register_singleton("LimboUtility", LimboUtility::get_singleton());
 #endif
-
-		LimboStringNames::create();
 	}
 
 #ifdef TOOLS_ENABLED
@@ -286,9 +287,22 @@ void initialize_limboai_module(ModuleInitializationLevel p_level) {
 
 void uninitialize_limboai_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		// Clean up in reverse order of initialization
 		LimboDebugger::deinitialize();
-		LimboStringNames::free();
+
+		// Cleanup static storage before destroying singletons
+		LimboTaskDB::cleanup();
+
+		// Unregister singleton before deleting the object
+#ifdef LIMBOAI_GDEXTENSION
+		Engine::get_singleton()->unregister_singleton("LimboUtility");
+#endif
+
 		memdelete(_limbo_utility);
+		_limbo_utility = nullptr;
+
+		// Free string names last (may be used by destructors)
+		LimboStringNames::free();
 	}
 }
 

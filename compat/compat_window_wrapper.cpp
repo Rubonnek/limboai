@@ -259,7 +259,10 @@ void CompatWindowWrapper::restore_window_from_saved_position(const Rect2 p_windo
 }
 
 void CompatWindowWrapper::enable_window_on_screen(int p_screen, bool p_auto_scale) {
-	int current_screen = Object::cast_to<godot::Window>(get_viewport())->get_current_screen();
+	godot::Window *viewport_window = Object::cast_to<godot::Window>(get_viewport());
+	ERR_FAIL_NULL(viewport_window);
+
+	int current_screen = viewport_window->get_current_screen();
 	int screen = p_screen < 0 ? current_screen : p_screen;
 
 	bool auto_scale = p_auto_scale && !EDITOR_GET("interface/multi_window/maximize_window");
@@ -342,7 +345,17 @@ void CompatWindowWrapper::_notification(int p_what) {
 }
 
 CompatWindowWrapper::CompatWindowWrapper() {
-	if (SCENE_TREE()->get_root()->is_embedding_subwindows() || EDITOR_GET("interface/editor/single_window_mode") || !EDITOR_GET("interface/multi_window/enable")) {
+	SceneTree *scene_tree = SCENE_TREE();
+	if (!scene_tree) {
+		return; // Scene tree not available during initialization
+	}
+
+	Window *root = scene_tree->get_root();
+	if (!root) {
+		return;
+	}
+
+	if (root->is_embedding_subwindows() || EDITOR_GET("interface/editor/single_window_mode") || !EDITOR_GET("interface/multi_window/enable")) {
 		return;
 	}
 

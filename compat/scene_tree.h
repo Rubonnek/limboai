@@ -19,7 +19,14 @@
 #ifdef LIMBOAI_GDEXTENSION
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
-#define SCENE_TREE() ((godot::SceneTree *)(godot::Engine::get_singleton()->get_main_loop()))
+
+// Use type-safe cast instead of C-style cast
+_FORCE_INLINE_ godot::SceneTree *_get_scene_tree_safe() {
+	godot::MainLoop *main_loop = godot::Engine::get_singleton()->get_main_loop();
+	return godot::Object::cast_to<godot::SceneTree>(main_loop);
+}
+
+#define SCENE_TREE() _get_scene_tree_safe()
 #endif // LIMBOAI_GDEXTENSION
 
 #endif // COMPAT_SCENE_TREE_H

@@ -127,7 +127,10 @@ bool BlackboardPlan::_get(const StringName &p_name, Variant &r_ret) const {
 
 			Node *edited_node = Object::cast_to<Node>(EditorInterface::get_singleton()->get_inspector()->get_edited_object());
 			if (!edited_node) {
-				edited_node = SCENE_TREE()->get_edited_scene_root();
+				SceneTree *scene_tree = SCENE_TREE();
+				if (scene_tree) {
+					edited_node = scene_tree->get_edited_scene_root();
+				}
 			}
 			Node *bound_node = edited_node ? edited_node->get_node_or_null(binding) : nullptr;
 

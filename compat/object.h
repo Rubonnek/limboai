@@ -19,11 +19,6 @@
 #define IS_CLASS(m_obj, m_class) (m_obj->is_class_ptr(m_class::get_class_ptr_static()))
 #define GET_SCRIPT(m_obj) (m_obj->get_script_instance() ? m_obj->get_script_instance()->get_script() : nullptr)
 
-_FORCE_INLINE_ bool OBJECT_HAS_PROPERTY(Object *p_obj, const StringName &p_prop) {
-	bool r_valid;
-	return Variant(p_obj).has_key(p_prop, r_valid);
-}
-
 #endif // LIMBOAI_MODULE
 
 #ifdef LIMBOAI_GDEXTENSION
@@ -36,10 +31,16 @@ _FORCE_INLINE_ bool OBJECT_HAS_PROPERTY(Object *p_obj, const StringName &p_prop)
 #define IS_CLASS(m_obj, m_class) (m_obj->is_class(#m_class))
 #define GET_SCRIPT(m_obj) (m_obj->get_script())
 
-_FORCE_INLINE_ bool OBJECT_HAS_PROPERTY(Object *p_obj, const StringName &p_prop) {
-	return Variant(p_obj).has_key(p_prop);
-}
-
 #endif // LIMBOAI_GDEXTENSION
+
+// Single inline function definition with internal conditional (ODR-compliant)
+_FORCE_INLINE_ bool OBJECT_HAS_PROPERTY(Object *p_obj, const StringName &p_prop) {
+#ifdef LIMBOAI_MODULE
+	bool r_valid;
+	return Variant(p_obj).has_key(p_prop, r_valid);
+#else
+	return Variant(p_obj).has_key(p_prop);
+#endif
+}
 
 #endif // COMPAT_OBJECT_H

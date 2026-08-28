@@ -45,7 +45,7 @@ Then, in a script attached to a parent node (as in the example below) or directl
 In this example, we first declare the state machine and the states we want to use from the scene.
 Then, in the ``_init_state_machine`` function, we add transitions between the states.
 Finally, we initialize the state machine and set it to active. Initializing the state machine via
-:ref:`LimboHSM.initialize<class_LimboHSM_method_initialize>` calls :ref:`LimboState._setup<class_LimboState_method__setup>` for itself and all substates.
+:ref:`LimboHSM.initialize<class_LimboHSM_method_initialize>` calls :ref:`LimboState._setup<class_LimboState_private_method__setup>` for itself and all substates.
 
 
 State example
@@ -126,6 +126,8 @@ to register event handlers in your states:
 If the event handler returns ``true``, the event will be considered as consumed,
 and it won't propagate further or result in a state transition.
 
+
+.. note:: Dispatching the root :ref:`LimboHSM<class_LimboHSM>` :ref:`EVENT_FINISHED<class_LimboState_property_EVENT_FINISHED>` event will trigger the HSM to invoke ``LimboHSM._exit()``. This behavior allows for transitions to inactive for the root, which can't be specified via :ref:`LimboHSM.add_transition<class_LimboHSM_method_add_transition>`.
 
 State anatomy
 -------------

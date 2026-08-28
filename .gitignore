@@ -192,4 +192,6 @@ compile_commands.json
 
 # clang cache
 .cache
+
+# Doctools build output
 _build

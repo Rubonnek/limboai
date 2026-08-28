@@ -225,6 +225,8 @@ bool LimboHSM::_dispatch(const StringName &p_event, const Variant &p_cargo) {
 		}
 	}
 
+	// It's not possible to add a transition to inactive for the root node, so treat EVENT_FINISHED
+	// as that transition trigger.
 	if (!event_consumed && p_event == EVENT_FINISHED && !(get_parent() && get_parent()->is_class("LimboState"))) {
 		_exit();
 	}

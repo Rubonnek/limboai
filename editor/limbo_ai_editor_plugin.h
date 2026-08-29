@@ -29,6 +29,7 @@
 #ifdef LIMBOAI_MODULE
 #include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"
+#include "editor/docks/editor_dock.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/plugins/editor_plugin.h"
@@ -48,6 +49,7 @@
 
 #ifdef LIMBOAI_GDEXTENSION
 #include <godot_cpp/classes/config_file.hpp>
+#include <godot_cpp/classes/editor_dock.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/editor_spin_slider.hpp>
 #include <godot_cpp/classes/editor_undo_redo_manager.hpp>
@@ -280,6 +282,7 @@ class LimboAIEditorPlugin : public EditorPlugin {
 
 private:
 	LimboAIEditor *limbo_ai_editor;
+	EditorDock *limbo_ai_dock = nullptr;
 	Ref<LimboDebuggerPlugin> debugger_plugin;
 	Ref<EditorInspectorPluginBBPlan> plan_plugin;
 	Ref<EditorInspectorPluginVariableName> var_plugin;

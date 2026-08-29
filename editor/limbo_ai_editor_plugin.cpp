@@ -1989,7 +1989,10 @@ void LimboAIEditorPlugin::make_visible(bool p_visible) {
 #elif LIMBOAI_GDEXTENSION
 void LimboAIEditorPlugin::_make_visible(bool p_visible) {
 #endif
-	limbo_ai_editor->set_visible(p_visible);
+
+	if (p_visible) {
+		limbo_ai_dock->make_visible();
+	}
 }
 
 #ifdef LIMBOAI_MODULE
@@ -2047,8 +2050,19 @@ Ref<Texture2D> LimboAIEditorPlugin::_get_plugin_icon() const {
 LimboAIEditorPlugin::LimboAIEditorPlugin() {
 	limbo_ai_editor = memnew(LimboAIEditor());
 	limbo_ai_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	EditorInterface::get_singleton()->get_editor_main_screen()->add_child(limbo_ai_editor);
-	limbo_ai_editor->hide();
+
+	limbo_ai_dock = memnew(EditorDock);
+	limbo_ai_dock->set_title("LimboAI");
+	limbo_ai_dock->set_dock_icon(LimboUtility::get_singleton()->get_task_icon("LimboAI"));
+	// Note: DOCK_SLOT_MAIN_SCREEN (value 11) and DOCK_LAYOUT_MAIN_SCREEN (value 8) are
+	// Godot 4.8-dev additions not yet present in godot-cpp's extension API, so the raw
+	// values are used for both module and GDExtension builds.
+	limbo_ai_dock->set_default_slot(static_cast<EditorDock::DockSlot>(11)); // DOCK_SLOT_MAIN_SCREEN
+	limbo_ai_dock->set_available_layouts(static_cast<EditorDock::DockLayout>(8 | 4)); // DOCK_LAYOUT_MAIN_SCREEN | DOCK_LAYOUT_FLOATING
+	limbo_ai_dock->add_child(limbo_ai_editor);
+	limbo_ai_dock->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+	add_dock(limbo_ai_dock);
+	set_meta("_dock", limbo_ai_dock);
 	limbo_ai_editor->set_plugin(this);
 }
 

@@ -1957,6 +1957,20 @@ void LimboAIEditorPlugin::_notification(int p_notification) {
 				EDITOR_SETTINGS()->set_setting("interface/inspector/resources_to_open_in_new_inspector", open_in_new_inspector);
 			}
 
+			// Create and add the main screen dock.
+			if (limbo_ai_dock == nullptr) {
+				limbo_ai_editor = memnew(LimboAIEditor);
+				limbo_ai_editor->set_plugin(this);
+
+				limbo_ai_dock = memnew(EditorDock);
+				limbo_ai_dock->set_title("LimboAI");
+				limbo_ai_dock->set_dock_icon(LimboUtility::get_singleton()->get_task_icon("LimboAI"));
+				limbo_ai_dock->set_default_slot(EditorDock::DOCK_SLOT_MAIN_SCREEN);
+				limbo_ai_dock->set_available_layouts(EditorDock::DOCK_LAYOUT_MAIN_SCREEN | EditorDock::DOCK_LAYOUT_FLOATING);
+				limbo_ai_dock->add_child(limbo_ai_editor);
+				add_dock(limbo_ai_dock);
+			}
+
 			debugger_plugin = memnew(LimboDebuggerPlugin);
 			add_debugger_plugin(debugger_plugin);
 
@@ -1981,6 +1995,33 @@ void LimboAIEditorPlugin::_notification(int p_notification) {
 			remove_inspector_plugin(path_plugin);
 			remove_inspector_plugin(param_plugin);
 		} break;
+#if LIMBOAI_GDEXTENSION
+		case NOTIFICATION_UNPARENTED: {
+			// The plugin is being removed from the editor while the editor keeps
+			// running - remove the plugin's dock and free the editor it contains.
+			// This can only happen in the GDExtension build: when the extension is
+			// unloaded or reloaded at runtime, the plugin object is deleted, and the
+			// dock must not outlive it. Otherwise, the dock would stay registered in
+			// the editor while its LimboAIEditor refers to the deleted plugin, and a
+			// duplicate dock would be created once the extension is loaded again.
+			// Built-in editor plugins don't need to remove their docks, because they
+			// are never removed at runtime and die together with the editor. The same
+			// applies to the module build of LimboAI, where this notification is never
+			// emitted - this cleanup exists for the GDExtension build, which shares
+			// this code.
+			// NOTE: The dock must not be removed in NOTIFICATION_EXIT_TREE: when the
+			// editor is closing, plugins exit the tree before EditorNode saves external
+			// data, so the editor must stay alive until then. When the editor is
+			// closing, this notification is never emitted, and the dock is freed
+			// together with the editor's scene tree instead.
+			if (limbo_ai_dock) {
+				remove_dock(limbo_ai_dock);
+				memdelete(limbo_ai_dock); // Also frees LimboAIEditor, being the dock's child.
+				limbo_ai_dock = nullptr;
+				limbo_ai_editor = nullptr;
+			}
+		} break;
+#endif //LIMBOAI_GDEXTENSION
 	}
 }
 
@@ -1989,7 +2030,10 @@ void LimboAIEditorPlugin::make_visible(bool p_visible) {
 #elif LIMBOAI_GDEXTENSION
 void LimboAIEditorPlugin::_make_visible(bool p_visible) {
 #endif
-	limbo_ai_editor->set_visible(p_visible);
+
+	if (p_visible && limbo_ai_dock != nullptr) {
+		limbo_ai_dock->make_visible();
+	}
 }
 
 #ifdef LIMBOAI_MODULE
@@ -2036,23 +2080,6 @@ void LimboAIEditorPlugin::save_external_data() {
 void LimboAIEditorPlugin::_save_external_data() {
 #endif
 	limbo_ai_editor->save_all(true);
-}
-
-#ifdef LIMBOAI_GDEXTENSION
-Ref<Texture2D> LimboAIEditorPlugin::_get_plugin_icon() const {
-	return LimboUtility::get_singleton()->get_task_icon("LimboAI");
-}
-#endif // LIMBOAI_GDEXTENSION
-
-LimboAIEditorPlugin::LimboAIEditorPlugin() {
-	limbo_ai_editor = memnew(LimboAIEditor());
-	limbo_ai_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	EditorInterface::get_singleton()->get_editor_main_screen()->add_child(limbo_ai_editor);
-	limbo_ai_editor->hide();
-	limbo_ai_editor->set_plugin(this);
-}
-
-LimboAIEditorPlugin::~LimboAIEditorPlugin() {
 }
 
 #endif // ! TOOLS_ENABLED

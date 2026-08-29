@@ -29,6 +29,7 @@
 #ifdef LIMBOAI_MODULE
 #include "core/templates/hash_map.h"
 #include "core/templates/hash_set.h"
+#include "editor/docks/editor_dock.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/plugins/editor_plugin.h"
@@ -280,6 +281,9 @@ class LimboAIEditorPlugin : public EditorPlugin {
 
 private:
 	LimboAIEditor *limbo_ai_editor;
+#ifdef LIMBOAI_MODULE
+	EditorDock *limbo_ai_dock = nullptr;
+#endif // LIMBOAI_MODULE
 	Ref<LimboDebuggerPlugin> debugger_plugin;
 	Ref<EditorInspectorPluginBBPlan> plan_plugin;
 	Ref<EditorInspectorPluginVariableName> var_plugin;
